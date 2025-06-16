@@ -114,7 +114,26 @@ async function run() {
       res.send(result);
     });
 
-    
+    // my booked tutors //
+
+    app.get("/booked-tutors", verifyFirebaseToken, verifyTokenEmail, async (req, res) => {
+      const email = req.query.email;
+      try {
+        const mybookedTutors = await bookedTutorCollection
+          .find({ bookedUserEmail: email })
+          .toArray();
+
+        const tutorialId = mybookedTutors.map(
+          (tutors) => new ObjectId(tutors.tutorialId)
+        );
+        const tutorials = await tutorialCollection
+          .find({ _id: { $in: tutorialId } })
+          .toArray();
+        res.send(tutorials);
+      } catch (err) {
+        res.status(500).send({ error: "Failed to load bookings" });
+      }
+    });
 
     // post booked tutors //
 
