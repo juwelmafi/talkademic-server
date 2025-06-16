@@ -93,6 +93,16 @@ async function run() {
     })
 
 
+     //get single tutorial//
+
+    app.get("/tutorials/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await tutorialCollection.findOne(query);
+      res.send(result);
+    });
+
+
     
 
     // post booked tutors //
