@@ -80,7 +80,20 @@ async function run() {
 
 
 
-   
+   // get my tutorial
+
+    app.get('/tutorialsByEmail', verifyFirebaseToken, verifyTokenEmail, async(req, res)=>{
+      const email = req.query.email;
+      
+      const query = {
+        userEmail: email
+      }
+      const result = await tutorialCollection.find(query).toArray();
+      res.send(result);
+    })
+
+
+    
 
     // post booked tutors //
 
