@@ -78,82 +78,9 @@ async function run() {
       res.send(result);
     });
 
-    // get my tutorial
 
-    app.get('/tutorialsByEmail', verifyFirebaseToken, verifyTokenEmail, async(req, res)=>{
-      const email = req.query.email;
-      
-      const query = {
-        userEmail: email
-      }
-      const result = await tutorialCollection.find(query).toArray();
-      res.send(result);
-    })
 
-    //get single tutorial//
-
-    app.get("/tutorials/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await tutorialCollection.findOne(query);
-      res.send(result);
-    });
-
-    // get tutors by category //
-
-    app.get("/find-tutors/:category", async (req, res) => {
-      const category = req.params.category;
-      const query = {
-        language: category,
-      };
-      const result = await tutorialCollection.find(query).toArray();
-      res.send(result);
-    });
-
-    // my booked tutors //
-
-    app.get("/booked-tutors", verifyFirebaseToken, verifyTokenEmail, async (req, res) => {
-      const email = req.query.email;
-      try {
-        const mybookedTutors = await bookedTutorCollection
-          .find({ bookedUserEmail: email })
-          .toArray();
-
-        const tutorialId = mybookedTutors.map(
-          (tutors) => new ObjectId(tutors.tutorialId)
-        );
-        const tutorials = await tutorialCollection
-          .find({ _id: { $in: tutorialId } })
-          .toArray();
-        res.send(tutorials);
-      } catch (err) {
-        res.status(500).send({ error: "Failed to load bookings" });
-      }
-    });
-
-    //get users ///
-
-    app.get("/users", async (req, res) => {
-      const result = await userCollection.find().toArray();
-      res.send(result);
-    });
-
-    // post tuturial //
-
-    app.post("/tutorials", async (req, res) => {
-      const tutorials = req.body;
-      tutorials.review = Number(tutorials.review) || 0;
-      const result = await tutorialCollection.insertOne(tutorials);
-      res.status(201).send(result);
-    });
-
-    // post users //
-
-    app.post("/users", async (req, res) => {
-      const users = req.body;
-      const result = await userCollection.insertOne(users);
-      res.status(201).send(result);
-    });
+   
 
     // post booked tutors //
 
