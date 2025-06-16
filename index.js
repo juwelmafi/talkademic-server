@@ -6,6 +6,7 @@ const admin = require("firebase-admin");
 const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString(
   "utf8"
 );
+console.log(decoded);
 const serviceAccount = JSON.parse(decoded);
 
 require("dotenv").config();
@@ -15,7 +16,6 @@ const app = express();
 // middle ware //
 app.use(cors());
 app.use(express.json());
-
 const uri = process.env.DB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -53,6 +53,14 @@ const verifyFirebaseToken = async (req, res, next) => {
     return res.status(401).send({ message: "unauthorized access" });
   }
 };
+
+// verify firebase token from body //
+
+const verifyFirebaseTokenFromBody = async (req, res, next) => {
+  const authBody = req.body?.accessToken;
+  next();
+};
+
 
 //varify token email //
 
@@ -99,12 +107,16 @@ async function run() {
 
     //get single tutorial//
 
-    app.get("/tutorials/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await tutorialCollection.findOne(query);
-      res.send(result);
-    });
+    app.get(
+      "/tutorials/:id",
+      verifyFirebaseToken,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await tutorialCollection.findOne(query);
+        res.send(result);
+      }
+    );
 
     // get tutors by category //
 
@@ -152,7 +164,7 @@ async function run() {
 
     // post tuturial //
 
-    app.post("/tutorials", async (req, res) => {
+    app.post("/tutorials", verifyFirebaseTokenFromBody, async (req, res) => {
       const tutorials = req.body;
       tutorials.review = Number(tutorials.review) || 0;
       const result = await tutorialCollection.insertOne(tutorials);
