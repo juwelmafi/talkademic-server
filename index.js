@@ -142,6 +142,16 @@ async function run() {
       res.send(result);
     });
 
+
+    // post tuturial //
+
+    app.post("/tutorials", async (req, res) => {
+      const tutorials = req.body;
+      tutorials.review = Number(tutorials.review) || 0;
+      const result = await tutorialCollection.insertOne(tutorials);
+      res.status(201).send(result);
+    });
+
     // post booked tutors //
 
     app.post("/booked-tutors", async (req, res) => {
