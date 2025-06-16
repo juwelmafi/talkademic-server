@@ -152,6 +152,14 @@ async function run() {
       res.status(201).send(result);
     });
 
+    // post users //
+
+    app.post("/users", async (req, res) => {
+      const users = req.body;
+      const result = await userCollection.insertOne(users);
+      res.status(201).send(result);
+    });
+
     // post booked tutors //
 
     app.post("/booked-tutors", async (req, res) => {
