@@ -135,6 +135,13 @@ async function run() {
       }
     });
 
+     //get users ///
+
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
     // post booked tutors //
 
     app.post("/booked-tutors", async (req, res) => {
