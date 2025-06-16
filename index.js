@@ -103,6 +103,17 @@ async function run() {
     });
 
 
+     // get tutors by category //
+
+    app.get("/find-tutors/:category", async (req, res) => {
+      const category = req.params.category;
+      const query = {
+        language: category,
+      };
+      const result = await tutorialCollection.find(query).toArray();
+      res.send(result);
+    });
+
     
 
     // post booked tutors //
