@@ -3,7 +3,9 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const admin = require("firebase-admin");
-const decoded = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8');
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString(
+  "utf8"
+);
 const serviceAccount = JSON.parse(decoded);
 
 require("dotenv").config();
@@ -35,7 +37,7 @@ admin.initializeApp({
 
 const verifyFirebaseToken = async (req, res, next) => {
   const authHeader = req.headers?.authorization;
-  console.log(authHeader)
+  console.log(authHeader);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).send({ message: "unathorized access" });
   }
@@ -55,7 +57,7 @@ const verifyFirebaseToken = async (req, res, next) => {
 //varify token email //
 
 const verifyTokenEmail = (req, res, next) => {
-  console.log(req.query.email)
+  console.log(req.query.email);
   if (req.query.email !== req.decoded.email) {
     return res.status(403).send({ message: "forbidden access" });
   }
@@ -78,22 +80,24 @@ async function run() {
       res.send(result);
     });
 
+    // get my tutorial
 
+    app.get(
+      "/tutorialsByEmail",
+      verifyFirebaseToken,
+      verifyTokenEmail,
+      async (req, res) => {
+        const email = req.query.email;
 
-   // get my tutorial
-
-    app.get('/tutorialsByEmail', verifyFirebaseToken, verifyTokenEmail, async(req, res)=>{
-      const email = req.query.email;
-      
-      const query = {
-        userEmail: email
+        const query = {
+          userEmail: email,
+        };
+        const result = await tutorialCollection.find(query).toArray();
+        res.send(result);
       }
-      const result = await tutorialCollection.find(query).toArray();
-      res.send(result);
-    })
+    );
 
-
-     //get single tutorial//
+    //get single tutorial//
 
     app.get("/tutorials/:id", async (req, res) => {
       const id = req.params.id;
@@ -102,8 +106,7 @@ async function run() {
       res.send(result);
     });
 
-
-     // get tutors by category //
+    // get tutors by category //
 
     app.get("/find-tutors/:category", async (req, res) => {
       const category = req.params.category;
@@ -116,32 +119,36 @@ async function run() {
 
     // my booked tutors //
 
-    app.get("/booked-tutors", verifyFirebaseToken, verifyTokenEmail, async (req, res) => {
-      const email = req.query.email;
-      try {
-        const mybookedTutors = await bookedTutorCollection
-          .find({ bookedUserEmail: email })
-          .toArray();
+    app.get(
+      "/booked-tutors",
+      verifyFirebaseToken,
+      verifyTokenEmail,
+      async (req, res) => {
+        const email = req.query.email;
+        try {
+          const mybookedTutors = await bookedTutorCollection
+            .find({ bookedUserEmail: email })
+            .toArray();
 
-        const tutorialId = mybookedTutors.map(
-          (tutors) => new ObjectId(tutors.tutorialId)
-        );
-        const tutorials = await tutorialCollection
-          .find({ _id: { $in: tutorialId } })
-          .toArray();
-        res.send(tutorials);
-      } catch (err) {
-        res.status(500).send({ error: "Failed to load bookings" });
+          const tutorialId = mybookedTutors.map(
+            (tutors) => new ObjectId(tutors.tutorialId)
+          );
+          const tutorials = await tutorialCollection
+            .find({ _id: { $in: tutorialId } })
+            .toArray();
+          res.send(tutorials);
+        } catch (err) {
+          res.status(500).send({ error: "Failed to load bookings" });
+        }
       }
-    });
+    );
 
-     //get users ///
+    //get users ///
 
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
-
 
     // post tuturial //
 
