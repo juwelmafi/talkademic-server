@@ -6,7 +6,7 @@ const admin = require("firebase-admin");
 const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString(
   "utf8"
 );
-console.log(decoded);
+// console.log(decoded);
 const serviceAccount = JSON.parse(decoded);
 
 require("dotenv").config();
@@ -37,7 +37,7 @@ admin.initializeApp({
 
 const verifyFirebaseToken = async (req, res, next) => {
   const authHeader = req.headers?.authorization;
-  console.log(authHeader);
+  // console.log(authHeader);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).send({ message: "unathorized access" });
   }
@@ -46,7 +46,7 @@ const verifyFirebaseToken = async (req, res, next) => {
 
   try {
     const decoded = await admin.auth().verifyIdToken(token);
-    console.log("decoded token", decoded);
+    // console.log("decoded token", decoded);
     req.decoded = decoded;
     next();
   } catch (error) {
@@ -65,7 +65,7 @@ const verifyFirebaseTokenFromBody = async (req, res, next) => {
 //varify token email //
 
 const verifyTokenEmail = (req, res, next) => {
-  console.log(req.query.email);
+  // console.log(req.query.email);
   if (req.query.email !== req.decoded.email) {
     return res.status(403).send({ message: "forbidden access" });
   }
@@ -198,7 +198,7 @@ async function run() {
 
     app.patch("/tutorials-review", async (req, res) => {
       const { id } = req.body;
-      console.log(id);
+      // console.log(id);
       const query = { _id: new ObjectId(id) };
 
       const result = await tutorialCollection.updateOne(query, {
@@ -242,7 +242,7 @@ async function run() {
     app.get("/tutorials/search/tutors", async (req, res) => {
       try {
         const query = req.query.que;
-        console.log(query);
+        // console.log(query);
         const result = await tutorialCollection
           .find({
             $or: [{ language: { $regex: query, $options: "i" } }],
