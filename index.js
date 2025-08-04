@@ -61,7 +61,6 @@ const verifyFirebaseTokenFromBody = async (req, res, next) => {
   next();
 };
 
-
 //varify token email //
 
 const verifyTokenEmail = (req, res, next) => {
@@ -107,16 +106,12 @@ async function run() {
 
     //get single tutorial//
 
-    app.get(
-      "/tutorials/:id",
-      verifyFirebaseToken,
-      async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await tutorialCollection.findOne(query);
-        res.send(result);
-      }
-    );
+    app.get("/tutorials/:id", verifyFirebaseToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await tutorialCollection.findOne(query);
+      res.send(result);
+    });
 
     // get tutors by category //
 
@@ -174,9 +169,24 @@ async function run() {
     // post users //
 
     app.post("/users", async (req, res) => {
-      const users = req.body;
-      const result = await userCollection.insertOne(users);
-      res.status(201).send(result);
+      const newUser = req.body;
+
+      try {
+        // Check if a user with the same email already exists
+        const existingUser = await userCollection.findOne({
+          email: newUser.email,
+        });
+
+        if (existingUser) {
+          return res.status(409).send({ message: "User already exists" });
+        }
+
+        // If not exists, insert the user
+        const result = await userCollection.insertOne(newUser);
+        res.status(201).send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
     });
 
     // post booked tutors //
