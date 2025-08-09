@@ -78,6 +78,7 @@ async function run() {
     const bookedTutorCollection = client
       .db("talkademic")
       .collection("booked_tutor");
+      const tutorApplicationsCollection = client.db('talkademic').collection('tutorApplication');
 
     // Get tutorials //
 
@@ -330,6 +331,23 @@ async function run() {
         res.status(500).json({ message: "Internal server error" });
       }
     });
+
+    // apply for tutor
+
+    app.post("/tutor-applications", async (req, res) => {
+      try {
+        const application = req.body;
+        application.status = "pending";
+        application.created_at = new Date().toISOString();
+
+        const result = await tutorApplicationsCollection.insertOne(application);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
