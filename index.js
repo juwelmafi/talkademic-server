@@ -78,7 +78,9 @@ async function run() {
     const bookedTutorCollection = client
       .db("talkademic")
       .collection("booked_tutor");
-      const tutorApplicationsCollection = client.db('talkademic').collection('tutorApplication');
+    const tutorApplicationsCollection = client
+      .db("talkademic")
+      .collection("tutorApplication");
 
     // Get tutorials //
 
@@ -347,7 +349,53 @@ async function run() {
       }
     });
 
+    // GET /tutor-applications?status=pending
+    app.get("/tutor-applications", async (req, res) => {
+      try {
+        const statusFilter = req.query.status || "pending";
+        const tutors = await tutorApplicationsCollection
+          .find({ status: statusFilter })
+          .toArray();
+        res.send(tutors);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to fetch tutor applications" });
+      }
+    });
 
+    /// PATCH /tutor-applications/:id/status
+    app.patch("/tutor-applications/:id/status", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const { status, email } = req.body; // status: "approved" or "rejected"
+        if (!status || !["approved", "rejected"].includes(status)) {
+          return res.status(400).send({ error: "Invalid status value" });
+        }
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = { $set: { status } };
+        const result = await tutorApplicationsCollection.updateOne(
+          filter,
+          updateDoc
+        );
+
+        // **New code to update the user role if status is approved**
+        if (status === "approved") {
+          // Find user by email and update role to "tutor"
+          const userUpdateResult = await userCollection.updateOne(
+            { email: email },
+            { $set: { role: "tutor" } }
+          );
+          // Optionally, you can check if userUpdateResult.modifiedCount === 1
+        }
+
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res
+          .status(500)
+          .send({ error: "Failed to update tutor application status" });
+      }
+    });
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
