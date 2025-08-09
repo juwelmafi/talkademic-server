@@ -109,7 +109,6 @@ async function run() {
 
     app.get(
       "/tutorials/:id",
-      verifyFirebaseToken,
       async (req, res) => {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
