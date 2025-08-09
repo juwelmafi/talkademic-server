@@ -61,7 +61,6 @@ const verifyFirebaseTokenFromBody = async (req, res, next) => {
   next();
 };
 
-
 //varify token email //
 
 const verifyTokenEmail = (req, res, next) => {
@@ -107,15 +106,12 @@ async function run() {
 
     //get single tutorial//
 
-    app.get(
-      "/tutorials/:id",
-      async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await tutorialCollection.findOne(query);
-        res.send(result);
-      }
-    );
+    app.get("/tutorials/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await tutorialCollection.findOne(query);
+      res.send(result);
+    });
 
     // get tutors by category //
 
@@ -178,79 +174,86 @@ async function run() {
       res.status(201).send(result);
     });
 
-
-  // post api for google login 
+    // post api for google login
 
     app.post("/google-user", async (req, res) => {
-  try {
-    const user = req.body; // { name, email, photo, ... }
+      try {
+        const user = req.body; // { name, email, photo, ... }
 
-    if (!user.email) {
-      return res.status(400).send({ error: "Email is required" });
-    }
+        if (!user.email) {
+          return res.status(400).send({ error: "Email is required" });
+        }
 
-    // Check if user already exists
-    const existingUser = await userCollection.findOne({ email: user.email });
+        // Check if user already exists
+        const existingUser = await userCollection.findOne({
+          email: user.email,
+        });
 
-    if (existingUser) {
-      // Already exists → return existing user
-      return res.status(200).send({
-        message: "User already exists",
-        user: existingUser
-      });
-    }
+        if (existingUser) {
+          // Already exists → return existing user
+          return res.status(200).send({
+            message: "User already exists",
+            user: existingUser,
+          });
+        }
 
-    // If not found → insert new user
-    const result = await userCollection.insertOne(user);
-    res.status(201).send({
-      message: "User created successfully",
-      result
+        // If not found → insert new user
+        const result = await userCollection.insertOne(user);
+        res.status(201).send({
+          message: "User created successfully",
+          result,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Internal server error" });
+      }
     });
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: "Internal server error" });
-  }
-});
+    // get api for user
 
+    // Get all users
+    app.get("/users", async (req, res) => {
+      try {
+        const users = await userCollection.find().toArray();
+        res.send(users);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to fetch users" });
+      }
+    });
 
+    // Update user role to tutor
+    app.patch("/users/:id/role", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const { role } = req.body; // role can be "tutor" or "user"
 
-// get api for user 
+        const result = await userCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { role: role } }
+        );
 
-// Get all users
-app.get("/users", async (req, res) => {
-  try {
-    const users = await userCollection.find().toArray();
-    res.send(users);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: "Failed to fetch users" });
-  }
-});
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to update user role" });
+      }
+    });
 
-
-// Update user role to tutor
-app.patch("/users/:id/role", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { role } = req.body; // role can be "tutor" or "user"
-
-    const result = await userCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { role: role } }
-    );
-
-    res.send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: "Failed to update user role" });
-  }
-});
-
-
-
-
-
+    // Get a user's role by email
+    app.get("/users/:email/role", async (req, res) => {
+      try {
+        const email = req.params.email;
+        const user = await userCollection.findOne({ email: email });
+        if (!user) {
+          return res.status(404).send({ message: "User not found" });
+        }
+        res.send({ role: user.role || "user" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to fetch user role" });
+      }
+    });
 
     // post booked tutors //
 
