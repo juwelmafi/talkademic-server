@@ -410,12 +410,21 @@ async function run() {
       }
     });
 
+    // get single blog 
 
-
-
-
-
-    
+    app.get("/blogs/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const blog = await blogsCollection.findOne({ _id: new ObjectId(id) });
+        if (!blog) {
+          return res.status(404).send({ message: "Blog not found" });
+        }
+        res.send(blog);
+      } catch (error) {
+        console.error("Error fetching blog by ID:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
