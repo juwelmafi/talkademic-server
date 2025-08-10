@@ -81,6 +81,7 @@ async function run() {
     const tutorApplicationsCollection = client
       .db("talkademic")
       .collection("tutorApplication");
+    const blogsCollection = client.db("talkademic").collection("blogs");
 
     // Get tutorials //
 
@@ -396,6 +397,25 @@ async function run() {
           .send({ error: "Failed to update tutor application status" });
       }
     });
+
+    // blgs api
+
+    app.get("/blogs", async (req, res) => {
+      try {
+        const blogs = await blogsCollection.find({}).toArray();
+        res.status(200).send(blogs);
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+        res.status(500).send({ message: "Failed to fetch blogs" });
+      }
+    });
+
+
+
+
+
+
+    
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
